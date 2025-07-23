@@ -48,7 +48,7 @@ namespace ARS.WinForms
 
 			base.OnTextChanged(e);
 		}
-		 
+
 	}
 
 	public class ARSToolStripLabel : ToolStripLabel, ICustomLabelARS
@@ -93,7 +93,7 @@ namespace ARS.WinForms
 
 			_timer.Start();
 		}
- 
+
 	}
 
 	#endregion
@@ -103,10 +103,10 @@ namespace ARS.WinForms
 	public class ARSTextBox : TextBox, ICustomControlsARS
 	{
 		private Label _requiredFieldLabel;
-	 
+
 		private CultureInfo _culture = new CultureInfo(127);
 
-		public Label ErrorMessageLabel { get; set; } 
+		public Label ErrorMessageLabel { get; set; }
 
 		public bool IsValid
 		{
@@ -138,7 +138,7 @@ namespace ARS.WinForms
 		{
 			base.OnLostFocus(e);
 
-			IsValid = !(IsRequired && string.IsNullOrEmpty(Text)); 
+			IsValid = !(IsRequired && string.IsNullOrEmpty(Text));
 		}
 	}
 
@@ -156,8 +156,7 @@ namespace ARS.WinForms
 				if (Text.Contains(","))
 					Thread.CurrentThread.CurrentCulture = new CultureInfo(1046);
 
-				double value;
-				var success = double.TryParse(Text, out value);
+				var success = double.TryParse(Text, out double value);
 				Thread.CurrentThread.CurrentCulture = Culture;
 
 				return success ? value : double.MinValue;
@@ -167,28 +166,76 @@ namespace ARS.WinForms
 
 		protected override void OnTextChanged(EventArgs e)
 		{
-			if (Text == "," || Text == ".")
+			if (string.IsNullOrEmpty(Text) || Text == "," || Text == ".")
 			{
 				base.OnTextChanged(e);
 				return;
 			}
 
-			double result;
-			if (double.TryParse(Text, out result) || string.IsNullOrEmpty(Text))
-			{
-				_formerValue = Text;
-				ForeColor = SystemColors.WindowText;
-			}
-			else
+			if (!double.TryParse(Text, out _))
 			{
 				Text = _formerValue;
 				ForeColor = Color.Red;
 				SelectionStart = Text.Length + 1;
+
+				base.OnTextChanged(e);
+				return;
 			}
 
+			_formerValue = Text;
+			ForeColor = SystemColors.WindowText;
 			base.OnTextChanged(e);
 		}
 	}
+
+	public class ARSCurrencyTextBox : ARSTextBox, INumericRangeControlARS
+	{
+		private string _formerValue = string.Empty;
+
+		public double MinValue { get; set; } = 0;
+		public double MaxValue { get; set; } = double.MaxValue;
+
+		public double TypedValue
+		{
+			get
+			{
+				double value;
+				return double.TryParse(Text, NumberStyles.Currency, Culture, out value) ? value : double.MinValue;
+			}
+			set => Text = value != double.MinValue ? value.ToString("C", Culture) : string.Empty;
+		}
+
+		protected override void OnTextChanged(EventArgs e)
+		{
+			if(string.IsNullOrEmpty(Text) || Text == "," || Text == ".")
+			{
+				base.OnTextChanged(e);
+				return;
+			}
+
+			if(!double.TryParse(Text, NumberStyles.Currency, Culture, out _))
+			{
+				Text = _formerValue;
+				ForeColor = Color.Red;
+				SelectionStart = Text.Length + 1;
+				base.OnTextChanged(e);
+				return;
+			} 
+
+			_formerValue = Text;
+			ForeColor = SystemColors.WindowText;
+			base.OnTextChanged(e);
+		}
+
+		protected override void OnLeave(EventArgs e)
+		{
+			base.OnLeave(e);
+
+			if (double.TryParse(Text, NumberStyles.Currency, Culture, out var value))
+				Text = value.ToString("C", Culture);
+		}
+	}
+
 
 	public class IntegerTextBox : ARSTextBox, INumericRangeControlARS
 	{
@@ -201,28 +248,35 @@ namespace ARS.WinForms
 		{
 			get
 			{
-				int value;
-				return int.TryParse(Text, out value) ? value : int.MinValue;
+				return int.TryParse(Text, out int value) ? value : int.MinValue;
 			}
 			set => Text = value != int.MinValue ? value.ToString() : string.Empty;
 		}
 
 		protected override void OnTextChanged(EventArgs e)
 		{
-			int result;
-			if (int.TryParse(Text, out result) || string.IsNullOrEmpty(Text))
+
+			if(string.IsNullOrEmpty(Text) )
 			{
-				_formerValue = Text;
-				ForeColor = SystemColors.WindowText;
+				base.OnTextChanged(e);
+				return;
 			}
-			else
+
+			if(!int.TryParse(Text, out _))
 			{
 				Text = _formerValue;
 				ForeColor = Color.Red;
 				SelectionStart = Text.Length + 1;
+				base.OnTextChanged(e);
+				return;
 			}
+	 
+			_formerValue = Text;
+
+			ForeColor = SystemColors.WindowText;
 
 			IsValid = !(IsRequired && string.IsNullOrEmpty(Text));
+
 			base.OnTextChanged(e);
 		}
 	}
@@ -233,17 +287,26 @@ namespace ARS.WinForms
 
 		protected override void OnLeave(EventArgs e)
 		{
-			if (Util.IsEmail(Text) || string.IsNullOrEmpty(Text))
+
+			if(string.IsNullOrEmpty(Text))
 			{
 				ForeColor = SystemColors.WindowText;
 				_formerValue = Text;
+				base.OnLeave(e);
+				return;
 			}
-			else
+
+			if (!Util.IsEmail(Text) )
 			{
 				ForeColor = Color.Red;
 				Text = _formerValue;
 				SelectionStart = Text.Length + 1;
+				base.OnLeave(e);
+				return;
 			}
+
+			ForeColor = SystemColors.WindowText;
+			_formerValue = Text;
 
 			base.OnLeave(e);
 		}
