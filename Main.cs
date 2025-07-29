@@ -15,7 +15,6 @@ namespace ARS.WinForms
 
 	public interface ICustomControlsARS
 	{
-
 		bool IsValid { get; set; }
 		bool IsEmpty { get; }
 		bool IsRequired { get; set; }
@@ -45,6 +44,9 @@ namespace ARS.WinForms
 	/// </summary>
 	public class ARSLabel : Label, ICustomLabelARS
 	{
+
+		
+
 		private System.Timers.Timer _timer;
 
 		public string InitialText { get; set; } = string.Empty;
@@ -187,11 +189,13 @@ namespace ARS.WinForms
 
 	public class ARSTextBox : TextBox, ICustomControlsARS
 	{
+		 
+
 		private Label _requiredFieldLabel;
 
 		private CultureInfo _culture = new CultureInfo(127);
 
-		public Label ErrorMessageLabel { get; set; }
+
 
 		private bool _isValid = true;
 
@@ -447,99 +451,119 @@ namespace ARS.WinForms
 		}
 	}
 
-
-	public class CEPTextBox : ARSTextBox, IDocumentField
+	public abstract class DocumentTextBox : ARSTextBox, IDocumentField
 	{
 		public bool ApplyMaskOnFocusLeave { get; set; } = true;
 
+		public override int MaxLength => base.MaxLength;
 
-		public override int MaxLength
-		{
-			get { return base.MaxLength; }
-		}
+		protected abstract int UnmaskedLength { get; }
+		protected abstract int MaskedLength { get; }
+		protected abstract bool IsValidFormat(string text);
+		protected abstract string ApplyMask(string rawText);
 
 		protected override void OnMouseEnter(EventArgs e)
 		{
-			//Em caso de redigitação pos validação exitosa, o Maxlength estará em 9 (a máscara foi aplicada).
-			//Sendo assim, toda vez que o mouse entrar no controle, devemos conferir se o usuário está digitando novamente e se sim, limitar o MaxLength para o default do CEP
-			if (base.MaxLength == 9)
-				base.MaxLength = 8;
- 
+			if (base.MaxLength == MaskedLength)
+				base.MaxLength = UnmaskedLength;
+
 			base.OnMouseEnter(e);
+		}
+
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			bool isDigitKey =
+				(e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9) ||
+				(e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9);
+
+			bool isControlShortcut =
+				e.Control && (
+					e.KeyCode == Keys.C ||
+					e.KeyCode == Keys.V ||
+					e.KeyCode == Keys.X
+				);
+
+			bool isAllowedKey =
+				isDigitKey ||
+				isControlShortcut ||
+				e.KeyCode == Keys.Back ||
+				e.KeyCode == Keys.Tab ||
+				e.KeyCode == Keys.Delete;
+
+			if (!isAllowedKey)
+			{
+				e.SuppressKeyPress = true;
+				return;
+			}
+
+			base.OnKeyDown(e);
 		}
 
 		protected override void OnLostFocus(EventArgs e)
 		{
 			IsValid = ValidateInput();
-
-		
-			
-
 			base.OnLostFocus(e);
 		}
 
 		public override bool ValidateInput()
 		{
-
-			// Se o campo é obrigatório e está vazio, returna falso
 			if (IsRequired && string.IsNullOrWhiteSpace(Text))
 			{
 				IsValid = false;
 				return false;
 			}
 
-			/*Passou aqui, pode ou não ser requerido, mas não pode ser inválido*/
-
-			//Se for vazio ou em forto inválido, returna falso
-			if (!Util.IsCep(Text))
-			{
+			if (!IsValidFormat(Text))
 				return false;
-			}
 
-			var rawCep = Text.Replace("-", "").Trim() ?? string.Empty;
+			var rawText = Text.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
 
-			if (ApplyMaskOnFocusLeave && rawCep.Length == 8)
+			if (ApplyMaskOnFocusLeave && rawText.Length == UnmaskedLength)
 			{
-				Text = rawCep.Insert(5, "-");
-
-				base.MaxLength = 9;
+				Text = ApplyMask(rawText);
+				base.MaxLength = MaskedLength;
 			}
-
 
 			return true;
 		}
-
 	}
 
-	public class CPFTextBox : ARSTextBox
+	public class CEPTextBox : DocumentTextBox
 	{
-		protected override void OnLostFocus(EventArgs e)
-		{
-			IsValid = Util.IsCPF(Text);
+		protected override int UnmaskedLength => 8;
+		protected override int MaskedLength => 9;
 
-			base.OnLostFocus(e);
+		protected override bool IsValidFormat(string text) => Util.IsCep(text);
 
-			if (IsValid && IsRequired)
-			{
-				IsValid = !string.IsNullOrWhiteSpace(Text);
-			}
-		}
+		protected override string ApplyMask(string rawText) =>
+			rawText.Insert(5, "-");
 	}
 
-	public class CNPJTextBox : ARSTextBox
+
+	public class CPFTextBox : DocumentTextBox
 	{
-		protected override void OnLostFocus(EventArgs e)
-		{
-			IsValid = Util.IsCNPJ(Text);
-			base.OnLostFocus(e);
+		protected override int UnmaskedLength => 11;
+		protected override int MaskedLength => 14;
 
-			if (IsValid && IsRequired)
-			{
-				IsValid = !string.IsNullOrWhiteSpace(Text);
-			}
-		}
+		protected override bool IsValidFormat(string text) => Util.IsCPF(text);
+
+		protected override string ApplyMask(string rawText) =>
+			rawText.Insert(3, ".").Insert(7, ".").Insert(11, "-");
 	}
 
+	public class CNPJTextBox : DocumentTextBox
+	{
+		protected override int UnmaskedLength => 14;
+		protected override int MaskedLength => 18;
+
+		protected override bool IsValidFormat(string text) => Util.IsCNPJ(text);
+
+		protected override string ApplyMask(string rawText) =>
+			rawText.Insert(2, ".").Insert(6, ".").Insert(10, "/").Insert(15, "-");
+	}
+
+
+	
 
 	#endregion
 
