@@ -1,27 +1,34 @@
-﻿using ARS.WinForms.Classes;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
-using ST = System.Timers;
 
 namespace ARS.WinForms
 {
 
+	public interface IDocumentField
+	{
+		bool ApplyMaskOnFocusLeave { get; set; }
+	}
+
+
 	public interface ICustomControlsARS
 	{
+
 		bool IsValid { get; set; }
 		bool IsEmpty { get; }
 		bool IsRequired { get; set; }
 		Label RequiredFieldLabel { set; }
 		CultureInfo Culture { get; set; }
+		bool ValidateInput();
 	}
 
 	public interface ICustomLabelARS
 	{
-		bool TextToEmptyAfterTimeoutEnabled { set; }
-		double TimeoutToTextEmpty { get; set; }
+		bool RestoreInitialTextAfterTimeout { set; }
+
+		double TextTimeout { get; set; }
 	}
 
 	public interface INumericRangeControlARS
@@ -38,63 +45,141 @@ namespace ARS.WinForms
 	/// </summary>
 	public class ARSLabel : Label, ICustomLabelARS
 	{
-		public bool TextToEmptyAfterTimeoutEnabled { get; set; } = true;
-		public double TimeoutToTextEmpty { get; set; } = 2000;
+		private System.Timers.Timer _timer;
 
-		protected override void OnTextChanged(EventArgs e)
+		public string InitialText { get; set; } = string.Empty;
+
+		public bool RestoreInitialTextAfterTimeout { get; set; } = false;
+
+		public bool TemporaryVisibility { get; set; } = false;
+
+		public double TextTimeout { get; set; } = 3000;
+
+		private Color? _initialForeColor = null;
+
+		protected override void OnCreateControl()
 		{
-			if (TextToEmptyAfterTimeoutEnabled)
-				TimerManager.Instance.LimpaMensagemAviso(this, TimeoutToTextEmpty);
+			base.OnCreateControl();
 
-			base.OnTextChanged(e);
-		}
-
-	}
-
-	public class ARSToolStripLabel : ToolStripLabel, ICustomLabelARS
-	{
-		public bool TextToEmptyAfterTimeoutEnabled { get; set; } = true;
-		public double TimeoutToTextEmpty { get; set; } = 2000;
-
-		private ST.Timer _timer;
-
-		protected override void OnTextChanged(EventArgs e)
-		{
-			if (TextToEmptyAfterTimeoutEnabled)
-				StartClearTextTimer();
-
-			base.OnTextChanged(e);
-		}
-
-		private void StartClearTextTimer()
-		{
-			if (_timer != null)
+			// Se for temporário, começa invisível
+			if (TemporaryVisibility)
 			{
-				_timer.Stop();
-				_timer.Dispose();
+				this.Visible = false;
+			}
+		}
+
+		protected override void OnTextChanged(EventArgs e)
+		{
+			base.OnTextChanged(e);
+
+			// Se ainda não definimos o texto inicial
+			if (string.IsNullOrEmpty(InitialText))
+				InitialText = Text;
+
+			// Salva a cor inicial do controle
+			if (_initialForeColor == null)
+				_initialForeColor = this.ForeColor;
+
+			// Se for temporário, torna visível e agenda para sumir
+			if (TemporaryVisibility)
+			{
+				this.Visible = true;
+				StartTimer(() => this.Visible = false);
 			}
 
-			_timer = new ST.Timer(TimeoutToTextEmpty)
+			// Se for label com texto temporário que deve voltar ao original
+			else if (RestoreInitialTextAfterTimeout && Text != InitialText)
 			{
-				AutoReset = false
+				StartTimer(() =>
+				{
+					this.Text = InitialText;
+					if (_initialForeColor.HasValue)
+						this.ForeColor = _initialForeColor.Value;
+				});
+			}
+		}
+
+		private void StartTimer(Action callback)
+		{
+			_timer?.Stop();
+			_timer?.Dispose();
+
+			_timer = new System.Timers.Timer(TextTimeout)
+			{
+				AutoReset = false,
+				SynchronizingObject = this
 			};
 
-			_timer.Elapsed += (sender, args) =>
+			_timer.Elapsed += (s, e) =>
 			{
-				_timer.Stop();
-				_timer.Dispose();
-				_timer = null;
-
-				if (Owner?.InvokeRequired == false)
-					Text = string.Empty;
-				else
-					Owner?.BeginInvoke(new Action(() => Text = string.Empty));
+				if (!this.IsDisposed && this.IsHandleCreated)
+				{
+					callback?.Invoke();
+				}
 			};
 
 			_timer.Start();
 		}
-
 	}
+
+
+	public class ARSToolStripLabel : ToolStripLabel, ICustomLabelARS
+	{
+		private System.Timers.Timer _timer;
+
+		public string InitialText { get; set; } = string.Empty;
+
+		public bool RestoreInitialTextAfterTimeout { get; set; } = false;
+
+		public bool TemporaryVisibility { get; set; } = false;
+
+		public double TextTimeout { get; set; } = 3000;
+
+		protected override void OnTextChanged(EventArgs e)
+		{
+			base.OnTextChanged(e);
+
+			if (string.IsNullOrEmpty(InitialText))
+				InitialText = Text;
+
+			// Se for uso temporário: mostra e esconde
+			if (TemporaryVisibility)
+			{
+				this.Visible = true;
+				StartTimer(() => this.Visible = false);
+			}
+			// Se deve restaurar texto inicial após tempo
+			else if (RestoreInitialTextAfterTimeout && Text != InitialText)
+			{
+				StartTimer(() => this.Text = InitialText);
+			}
+		}
+
+		private void StartTimer(Action callback)
+		{
+			_timer?.Stop();
+			_timer?.Dispose();
+
+			_timer = new System.Timers.Timer(TextTimeout)
+			{
+				AutoReset = false,
+				SynchronizingObject = this.Owner
+			};
+
+			_timer.Elapsed += (s, e) =>
+			{
+				if (Owner != null && !Owner.IsDisposed)
+				{
+					Owner.BeginInvoke(new Action(() => callback?.Invoke()));
+				}
+			};
+
+			_timer.Start();
+		}
+	}
+
+
+
 
 	#endregion
 
@@ -108,12 +193,15 @@ namespace ARS.WinForms
 
 		public Label ErrorMessageLabel { get; set; }
 
+		private bool _isValid = true;
+
 		public bool IsValid
 		{
-			get => !(IsRequired && string.IsNullOrEmpty(Text));
-
+			get => _isValid;
 			set
 			{
+				_isValid = value;
+
 				if (_requiredFieldLabel != null)
 					_requiredFieldLabel.ForeColor = value ? SystemColors.ControlText : Color.Red;
 			}
@@ -134,12 +222,54 @@ namespace ARS.WinForms
 			set => _culture = value;
 		}
 
+		private string _placeholderText;
+		private Color _placeholderColor = Color.Gray;
+		private Color _defaultForeColor;
+
+		public void SetPlaceholder(string placeholder)
+		{
+			_placeholderText = placeholder;
+			_defaultForeColor = ForeColor;
+
+			if (string.IsNullOrEmpty(Text))
+			{
+				Text = _placeholderText;
+				ForeColor = _placeholderColor;
+			}
+
+			GotFocus += RemovePlaceholder;
+			LostFocus += ApplyPlaceholder;
+		}
+
+		private void RemovePlaceholder(object sender, EventArgs e)
+		{
+			if (Text == _placeholderText)
+			{
+				Text = string.Empty;
+				ForeColor = _defaultForeColor;
+			}
+		}
+
+		private void ApplyPlaceholder(object sender, EventArgs e)
+		{
+			if (string.IsNullOrEmpty(Text))
+			{
+				Text = _placeholderText;
+				ForeColor = _placeholderColor;
+			}
+		}
+
+		public virtual bool ValidateInput()
+		{
+			return !(IsRequired && string.IsNullOrEmpty(Text));
+		}
+
 		protected override void OnLostFocus(EventArgs e)
 		{
+			IsValid = ValidateInput();
 			base.OnLostFocus(e);
-
-			IsValid = !(IsRequired && string.IsNullOrEmpty(Text));
 		}
+
 	}
 
 	public class DoubleTextBox : ARSTextBox, INumericRangeControlARS
@@ -199,28 +329,27 @@ namespace ARS.WinForms
 		{
 			get
 			{
-				double value;
-				return double.TryParse(Text, NumberStyles.Currency, Culture, out value) ? value : double.MinValue;
+				return double.TryParse(Text, NumberStyles.Currency, Culture, out double value) ? value : double.MinValue;
 			}
 			set => Text = value != double.MinValue ? value.ToString("C", Culture) : string.Empty;
 		}
 
 		protected override void OnTextChanged(EventArgs e)
 		{
-			if(string.IsNullOrEmpty(Text) || Text == "," || Text == ".")
+			if (string.IsNullOrEmpty(Text) || Text == "," || Text == ".")
 			{
 				base.OnTextChanged(e);
 				return;
 			}
 
-			if(!double.TryParse(Text, NumberStyles.Currency, Culture, out _))
+			if (!double.TryParse(Text, NumberStyles.Currency, Culture, out _))
 			{
 				Text = _formerValue;
 				ForeColor = Color.Red;
 				SelectionStart = Text.Length + 1;
 				base.OnTextChanged(e);
 				return;
-			} 
+			}
 
 			_formerValue = Text;
 			ForeColor = SystemColors.WindowText;
@@ -256,13 +385,13 @@ namespace ARS.WinForms
 		protected override void OnTextChanged(EventArgs e)
 		{
 
-			if(string.IsNullOrEmpty(Text) )
+			if (string.IsNullOrEmpty(Text))
 			{
 				base.OnTextChanged(e);
 				return;
 			}
 
-			if(!int.TryParse(Text, out _))
+			if (!int.TryParse(Text, out _))
 			{
 				Text = _formerValue;
 				ForeColor = Color.Red;
@@ -270,7 +399,7 @@ namespace ARS.WinForms
 				base.OnTextChanged(e);
 				return;
 			}
-	 
+
 			_formerValue = Text;
 
 			ForeColor = SystemColors.WindowText;
@@ -288,7 +417,7 @@ namespace ARS.WinForms
 		protected override void OnLeave(EventArgs e)
 		{
 
-			if(string.IsNullOrEmpty(Text))
+			if (string.IsNullOrEmpty(Text))
 			{
 				ForeColor = SystemColors.WindowText;
 				_formerValue = Text;
@@ -296,7 +425,7 @@ namespace ARS.WinForms
 				return;
 			}
 
-			if (!Util.IsEmail(Text) )
+			if (!Util.IsEmail(Text))
 			{
 				ForeColor = Color.Red;
 				Text = _formerValue;
@@ -313,15 +442,43 @@ namespace ARS.WinForms
 	}
 
 
-	public class CEPTextBox : ARSTextBox
+	public class CEPTextBox : ARSTextBox, IDocumentField
 	{
+		public bool ApplyMaskOnFocusLeave { get; set; } = true;
+
+		private int _maxLength = 8;
+		public override int MaxLength => _maxLength;
+
 		protected override void OnLostFocus(EventArgs e)
-		{
-			IsValid = Util.IsCep(Text);
+		{ 
+			IsValid = ValidateInput();
+
 			base.OnLostFocus(e);
-			if (IsValid)
-				IsValid = !(IsRequired && string.IsNullOrEmpty(Text));
 		}
+
+		public override bool ValidateInput()
+		{
+			var rawCep = Text?.Replace("-", "").Trim() ?? string.Empty;
+
+			if (IsRequired && string.IsNullOrWhiteSpace(rawCep))
+				return false;
+
+			if (!Util.IsCep(rawCep))
+				return false;
+
+			if (ApplyMaskOnFocusLeave && rawCep.Length == 8)
+			{
+				Text = rawCep.Insert(5, "-");
+				_maxLength = 9;
+			}
+			else
+			{
+				_maxLength = 8;
+			}
+
+			return true;
+		}
+
 	}
 
 	public class CPFTextBox : ARSTextBox
@@ -329,9 +486,13 @@ namespace ARS.WinForms
 		protected override void OnLostFocus(EventArgs e)
 		{
 			IsValid = Util.IsCPF(Text);
+
 			base.OnLostFocus(e);
-			if (IsValid)
-				IsValid = !(IsRequired && string.IsNullOrEmpty(Text));
+
+			if (IsValid && IsRequired)
+			{
+				IsValid = !string.IsNullOrWhiteSpace(Text);
+			}
 		}
 	}
 
@@ -341,8 +502,11 @@ namespace ARS.WinForms
 		{
 			IsValid = Util.IsCNPJ(Text);
 			base.OnLostFocus(e);
-			if (IsValid)
-				IsValid = !(IsRequired && string.IsNullOrEmpty(Text));
+
+			if (IsValid && IsRequired)
+			{
+				IsValid = !string.IsNullOrWhiteSpace(Text);
+			}
 		}
 	}
 
