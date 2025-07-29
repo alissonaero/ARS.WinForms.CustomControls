@@ -62,8 +62,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Singleton.cs" />
-    <Compile Include="Classes\TimerManager.cs" />
     <Compile Include="Main.cs">
       <SubType>Component</SubType>
     </Compile>

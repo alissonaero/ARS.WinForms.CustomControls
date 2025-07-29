@@ -84,7 +84,7 @@ namespace ARS.WinForms
 			if (TemporaryVisibility)
 			{
 				this.Visible = true;
-				StartTimer(() => this.Visible = false);
+				StartTimer(() => this.Visible = !this.Visible);
 			}
 
 			// Se for label com texto temporário que deve voltar ao original
@@ -197,7 +197,13 @@ namespace ARS.WinForms
 
 		public bool IsValid
 		{
-			get => _isValid;
+			get
+			{
+				_isValid = ValidateInput();
+
+				return _isValid;
+			}
+
 			set
 			{
 				_isValid = value;
@@ -446,35 +452,59 @@ namespace ARS.WinForms
 	{
 		public bool ApplyMaskOnFocusLeave { get; set; } = true;
 
-		private int _maxLength = 8;
-		public override int MaxLength => _maxLength;
+
+		public override int MaxLength
+		{
+			get { return base.MaxLength; }
+		}
+
+		protected override void OnMouseEnter(EventArgs e)
+		{
+			//Em caso de redigitação pos validação exitosa, o Maxlength estará em 9 (a máscara foi aplicada).
+			//Sendo assim, toda vez que o mouse entrar no controle, devemos conferir se o usuário está digitando novamente e se sim, limitar o MaxLength para o default do CEP
+			if (base.MaxLength == 9)
+				base.MaxLength = 8;
+ 
+			base.OnMouseEnter(e);
+		}
 
 		protected override void OnLostFocus(EventArgs e)
-		{ 
+		{
 			IsValid = ValidateInput();
+
+		
+			
 
 			base.OnLostFocus(e);
 		}
 
 		public override bool ValidateInput()
 		{
-			var rawCep = Text?.Replace("-", "").Trim() ?? string.Empty;
 
-			if (IsRequired && string.IsNullOrWhiteSpace(rawCep))
+			// Se o campo é obrigatório e está vazio, returna falso
+			if (IsRequired && string.IsNullOrWhiteSpace(Text))
+			{
+				IsValid = false;
 				return false;
+			}
 
-			if (!Util.IsCep(rawCep))
+			/*Passou aqui, pode ou não ser requerido, mas não pode ser inválido*/
+
+			//Se for vazio ou em forto inválido, returna falso
+			if (!Util.IsCep(Text))
+			{
 				return false;
+			}
+
+			var rawCep = Text.Replace("-", "").Trim() ?? string.Empty;
 
 			if (ApplyMaskOnFocusLeave && rawCep.Length == 8)
 			{
 				Text = rawCep.Insert(5, "-");
-				_maxLength = 9;
+
+				base.MaxLength = 9;
 			}
-			else
-			{
-				_maxLength = 8;
-			}
+
 
 			return true;
 		}
