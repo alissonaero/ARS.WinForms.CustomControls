@@ -39,13 +39,18 @@ namespace ARS.WinForms
 	#region Labels
 
 	/// <summary>
-	/// Para usar, deixe o texto como vazio. Ou deixe com texto para deixar o controle visivel no form durante edição e set como vazio durante o formload.
-	/// TextToEmptyAfterTimeoutEnabled = True para o texto sumir segundos após eceber algum valor.
+	/// Represents a specialized label control with support for temporary text visibility,  automatic text restoration, and
+	/// timeout-based behavior.
 	/// </summary>
+	/// <remarks>The <see cref="ARSLabel"/> class extends the standard <see cref="Label"/> control to provide 
+	/// additional functionality, including: <list type="bullet"> <item>Temporary visibility for labels, which
+	/// automatically toggles after a specified timeout.</item> <item>Automatic restoration of the initial text after a
+	/// timeout when the text is changed.</item> <item>Customizable timeout duration for text restoration or visibility
+	/// toggling.</item> </list> This control is useful for scenarios where labels need to display temporary messages or 
+	/// dynamically change visibility based on user interaction or application state.</remarks>
 	public class ARSLabel : Label, ICustomLabelARS
 	{
-
-		
+		 
 
 		private System.Timers.Timer _timer;
 
@@ -124,7 +129,17 @@ namespace ARS.WinForms
 		}
 	}
 
-
+	/// <summary>
+	/// Represents a specialized <see cref="ToolStripLabel"/> with additional functionality for temporary text visibility, 
+	/// automatic text restoration, and timeout-based behavior.
+	/// </summary>
+	/// <remarks>The <see cref="ARSToolStripLabel"/> provides features such as: <list type="bullet">
+	/// <item><description>Temporary visibility of the label, controlled by the <see cref="TemporaryVisibility"/>
+	/// property.</description></item> <item><description>Automatic restoration of the initial text after a specified
+	/// timeout, controlled by the <see cref="RestoreInitialTextAfterTimeout"/> property.</description></item>
+	/// <item><description>Customizable timeout duration for text restoration or visibility, specified by the <see
+	/// cref="TextTimeout"/> property.</description></item> </list> This class is useful for scenarios where dynamic text
+	/// updates or temporary visibility are required, such as status messages or notifications.</remarks>
 	public class ARSToolStripLabel : ToolStripLabel, ICustomLabelARS
 	{
 		private System.Timers.Timer _timer;
@@ -187,15 +202,19 @@ namespace ARS.WinForms
 
 	#region TextBoxes
 
+	/// <summary>
+	/// Represents a custom text box control with additional functionality for validation, placeholder text,  and required
+	/// field indication.
+	/// </summary>
+	/// <remarks>The <see cref="ARSTextBox"/> class extends the standard <see cref="TextBox"/> control to provide 
+	/// features such as input validation, placeholder text management, and required field handling.  It is designed to
+	/// simplify form input scenarios where validation and user guidance are needed.</remarks>
 	public class ARSTextBox : TextBox, ICustomControlsARS
 	{
 		 
-
 		private Label _requiredFieldLabel;
 
 		private CultureInfo _culture = new CultureInfo(127);
-
-
 
 		private bool _isValid = true;
 
@@ -212,8 +231,7 @@ namespace ARS.WinForms
 			{
 				_isValid = value;
 
-				if (_requiredFieldLabel != null)
-					_requiredFieldLabel.ForeColor = value ? SystemColors.ControlText : Color.Red;
+				
 			}
 		}
 
@@ -224,6 +242,7 @@ namespace ARS.WinForms
 		public Label RequiredFieldLabel
 		{
 			set => _requiredFieldLabel = value;
+			get => _requiredFieldLabel;
 		}
 
 		public CultureInfo Culture
@@ -277,11 +296,26 @@ namespace ARS.WinForms
 		protected override void OnLostFocus(EventArgs e)
 		{
 			IsValid = ValidateInput();
+
+			if (_requiredFieldLabel != null)
+			{
+				_requiredFieldLabel.ForeColor = (IsValid ? SystemColors.ControlText : Color.Red);
+			}
+
 			base.OnLostFocus(e);
 		}
 
 	}
 
+	/// <summary>
+	/// Represents a text box control for inputting and displaying double-precision numeric values.
+	/// </summary>
+	/// <remarks>The <see cref="DoubleTextBox"/> allows users to input numeric values within a specified range,
+	/// defined by  <see cref="MinValue"/> and <see cref="MaxValue"/>. It validates the input to ensure it is a valid
+	/// double-precision  number and provides feedback by changing the text color to red for invalid input.  The <see
+	/// cref="TypedValue"/> property provides direct access to the numeric value represented by the text box, 
+	/// automatically parsing the text input. If the input is invalid, <see cref="TypedValue"/> returns <see
+	/// cref="double.MinValue"/>.</remarks>
 	public class DoubleTextBox : ARSTextBox, INumericRangeControlARS
 	{
 		private string _formerValue = string.Empty;
@@ -328,6 +362,12 @@ namespace ARS.WinForms
 		}
 	}
 
+	/// <summary>
+	/// Represents a text box control for inputting and displaying currency values.
+	/// </summary>
+	/// <remarks>The <see cref="ARSCurrencyTextBox"/> provides functionality for handling currency input,  including
+	/// validation, formatting, and range enforcement. The control automatically formats  the entered value as currency
+	/// based on the specified culture and ensures that the value  remains within the defined range.</remarks>
 	public class ARSCurrencyTextBox : ARSTextBox, INumericRangeControlARS
 	{
 		private string _formerValue = string.Empty;
@@ -375,7 +415,13 @@ namespace ARS.WinForms
 		}
 	}
 
-
+	/// <summary>
+	/// Represents a text box control that allows input of integer values within a specified range.
+	/// </summary>
+	/// <remarks>The <see cref="IntegerTextBox"/> ensures that only valid integer values can be entered. If the
+	/// input is invalid, the text box reverts to the previous valid value and displays the text in red. The control also
+	/// supports specifying a minimum and maximum allowable value through the <see cref="MinValue"/> and <see
+	/// cref="MaxValue"/> properties.</remarks>
 	public class IntegerTextBox : ARSTextBox, INumericRangeControlARS
 	{
 		private string _formerValue = string.Empty;
@@ -420,6 +466,12 @@ namespace ARS.WinForms
 		}
 	}
 
+	/// <summary>
+	/// Represents a text box control designed for email address input, with validation and formatting behavior.
+	/// </summary>
+	/// <remarks>The <see cref="EmailTextBox"/> validates the text entered by the user to ensure it is a valid email
+	/// address. If the text is invalid, the control reverts to the previous value and displays the text in red. If the
+	/// text is valid, it updates the internal state and displays the text in the default color.</remarks>
 	public class EmailTextBox : ARSTextBox
 	{
 		private string _formerValue = string.Empty;
@@ -435,7 +487,7 @@ namespace ARS.WinForms
 				return;
 			}
 
-			if (!Util.IsEmail(Text))
+			if (!DocumentValidations .IsEmail(Text))
 			{
 				ForeColor = Color.Red;
 				Text = _formerValue;
@@ -451,6 +503,13 @@ namespace ARS.WinForms
 		}
 	}
 
+	/// <summary>
+	/// Represents a specialized text box control designed for handling document-specific input fields.
+	/// </summary>
+	/// <remarks>The <see cref="DocumentTextBox"/> class provides functionality for validating and formatting text
+	/// input  according to document-specific requirements, such as applying masks and ensuring valid formats.  It supports
+	/// features like masking raw input, restricting allowed key presses, and validating input  based on custom
+	/// rules.</remarks>
 	public abstract class DocumentTextBox : ARSTextBox, IDocumentField
 	{
 		public bool ApplyMaskOnFocusLeave { get; set; } = true;
@@ -533,7 +592,7 @@ namespace ARS.WinForms
 		protected override int UnmaskedLength => 8;
 		protected override int MaskedLength => 9;
 
-		protected override bool IsValidFormat(string text) => Util.IsCep(text);
+		protected override bool IsValidFormat(string text) => DocumentValidations.IsCep(text);
 
 		protected override string ApplyMask(string rawText) =>
 			rawText.Insert(5, "-");
@@ -545,7 +604,7 @@ namespace ARS.WinForms
 		protected override int UnmaskedLength => 11;
 		protected override int MaskedLength => 14;
 
-		protected override bool IsValidFormat(string text) => Util.IsCPF(text);
+		protected override bool IsValidFormat(string text) => DocumentValidations.IsCPF(text);
 
 		protected override string ApplyMask(string rawText) =>
 			rawText.Insert(3, ".").Insert(7, ".").Insert(11, "-");
@@ -556,15 +615,12 @@ namespace ARS.WinForms
 		protected override int UnmaskedLength => 14;
 		protected override int MaskedLength => 18;
 
-		protected override bool IsValidFormat(string text) => Util.IsCNPJ(text);
+		protected override bool IsValidFormat(string text) => DocumentValidations.IsCNPJ(text);
 
 		protected override string ApplyMask(string rawText) =>
 			rawText.Insert(2, ".").Insert(6, ".").Insert(10, "/").Insert(15, "-");
 	}
-
-
-	
-
+	 
 	#endregion
 
 

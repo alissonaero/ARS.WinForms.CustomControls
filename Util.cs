@@ -7,7 +7,35 @@ namespace ARS.WinForms
 {
 	public static class Util
 	{
-		//   Validation Methods
+		 
+
+		public static string ToTitleCase(string str) =>
+			CultureInfo.CurrentCulture.TextInfo.ToTitleCase(str?.ToLower() ?? "");
+
+		public static string FirstLetterToUpper(string str) =>
+			string.IsNullOrEmpty(str) ? str :
+			str.Length == 1 ? str.ToUpper() :
+			char.ToUpper(str[0]) + str.Substring(1);
+	}
+
+	public static class MessageBoxHelper
+	{
+		public static void ShowError(string message, string title = "Error")
+		{
+			MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+		}
+		public static void ShowWarning(string message, string title = "Warning")
+		{
+			MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+		}
+		public static void ShowInfo(string message, string title = "Information")
+		{
+			MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+	}
+
+	public static class DocumentValidations
+	{
 
 		public static bool IsCep(string cep) =>
 			MatchesRegex(cep, @"^\d{5}-\d{3}$|^\d{8}$");
@@ -69,36 +97,5 @@ namespace ARS.WinForms
 
 		private static bool MatchesRegex(string input, string pattern) =>
 			Regex.IsMatch(input ?? "", pattern, RegexOptions.IgnoreCase);
-
-		// MessageBox Helpers
-
-		public static void Aviso(string message) =>
-			MessageBox.Show(message, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-		public static void Informar(string message) =>
-			MessageBox.Show(message, "Mensagem", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-		public static void Informar(string message, string caption) =>
-			MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-		public static void Erro(string message) =>
-			MessageBox.Show(message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-		[Obsolete("Método foi substituído por \"Prompt\"")]
-		public static DialogResult Pergunta(string pergunta) =>
-			Prompt(pergunta);
-
-		public static DialogResult Prompt(string pergunta) =>
-			MessageBox.Show(pergunta, "Pergunta", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-		//  String Utilities
-
-		public static string ToTitleCase(string str) =>
-			CultureInfo.CurrentCulture.TextInfo.ToTitleCase(str?.ToLower() ?? "");
-
-		public static string FirstLetterToUpper(string str) =>
-			string.IsNullOrEmpty(str) ? str :
-			str.Length == 1 ? str.ToUpper() :
-			char.ToUpper(str[0]) + str.Substring(1);
 	}
 }
