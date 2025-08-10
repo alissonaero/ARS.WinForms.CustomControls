@@ -38,63 +38,67 @@ namespace ARS.WinForms
 
 	#region Labels
 
-	/// <summary>
-	/// Represents a specialized label control with support for temporary text visibility,  automatic text restoration, and
-	/// timeout-based behavior.
-	/// </summary>
-	/// <remarks>The <see cref="ARSLabel"/> class extends the standard <see cref="Label"/> control to provide 
-	/// additional functionality, including: <list type="bullet"> <item>Temporary visibility for labels, which
-	/// automatically toggles after a specified timeout.</item> <item>Automatic restoration of the initial text after a
-	/// timeout when the text is changed.</item> <item>Customizable timeout duration for text restoration or visibility
-	/// toggling.</item> </list> This control is useful for scenarios where labels need to display temporary messages or 
-	/// dynamically change visibility based on user interaction or application state.</remarks>
+	 
 	public class ARSLabel : Label, ICustomLabelARS
 	{
-		 
-
 		private System.Timers.Timer _timer;
+		private Color? _initialForeColor = null;
 
 		public string InitialText { get; set; } = string.Empty;
-
 		public bool RestoreInitialTextAfterTimeout { get; set; } = false;
-
 		public bool TemporaryVisibility { get; set; } = false;
-
 		public double TextTimeout { get; set; } = 3000;
-
-		private Color? _initialForeColor = null;
 
 		protected override void OnCreateControl()
 		{
 			base.OnCreateControl();
 
-			// Se for temporário, começa invisível
 			if (TemporaryVisibility)
-			{
 				this.Visible = false;
-			}
+
+			if (string.IsNullOrEmpty(InitialText))
+				InitialText = this.Text;
+
+			if (_initialForeColor == null)
+				_initialForeColor = this.ForeColor;
 		}
 
 		protected override void OnTextChanged(EventArgs e)
 		{
 			base.OnTextChanged(e);
+			HandleTemporaryBehavior();
+		}
 
-			// Se ainda não definimos o texto inicial
+		/// <summary>
+		/// Shows a message temporarily, even if the text is the same as before.
+		/// </summary>
+		public void ShowTemporary(string message, Color? tempColor = null)
+		{
+			StopTimer();
+
 			if (string.IsNullOrEmpty(InitialText))
-				InitialText = Text;
+				InitialText = this.Text;
 
-			// Salva a cor inicial do controle
 			if (_initialForeColor == null)
 				_initialForeColor = this.ForeColor;
 
-			// Se for temporário, torna visível e agenda para sumir
+			if (tempColor.HasValue)
+				this.ForeColor = tempColor.Value;
+
+			this.Text = message;
+
+			HandleTemporaryBehavior();
+		}
+
+		private void HandleTemporaryBehavior()
+		{
+			StopTimer();
+
 			if (TemporaryVisibility)
 			{
 				this.Visible = true;
-				StartTimer(() => this.Visible = !this.Visible);
+				StartTimer(() => this.Visible = false);
 			}
-
-			// Se for label com texto temporário que deve voltar ao original
 			else if (RestoreInitialTextAfterTimeout && Text != InitialText)
 			{
 				StartTimer(() =>
@@ -108,8 +112,7 @@ namespace ARS.WinForms
 
 		private void StartTimer(Action callback)
 		{
-			_timer?.Stop();
-			_timer?.Dispose();
+			StopTimer();
 
 			_timer = new System.Timers.Timer(TextTimeout)
 			{
@@ -127,46 +130,59 @@ namespace ARS.WinForms
 
 			_timer.Start();
 		}
+
+		private void StopTimer()
+		{
+			_timer?.Stop();
+			_timer?.Dispose();
+			_timer = null;
+		}
 	}
 
+
+
 	/// <summary>
-	/// Represents a specialized <see cref="ToolStripLabel"/> with additional functionality for temporary text visibility, 
-	/// automatic text restoration, and timeout-based behavior.
+	/// Represents a specialized <see cref="ToolStripLabel"/> that supports displaying temporary messages  with optional
+	/// timeout-based visibility or text restoration functionality.
 	/// </summary>
-	/// <remarks>The <see cref="ARSToolStripLabel"/> provides features such as: <list type="bullet">
-	/// <item><description>Temporary visibility of the label, controlled by the <see cref="TemporaryVisibility"/>
-	/// property.</description></item> <item><description>Automatic restoration of the initial text after a specified
-	/// timeout, controlled by the <see cref="RestoreInitialTextAfterTimeout"/> property.</description></item>
-	/// <item><description>Customizable timeout duration for text restoration or visibility, specified by the <see
-	/// cref="TextTimeout"/> property.</description></item> </list> This class is useful for scenarios where dynamic text
-	/// updates or temporary visibility are required, such as status messages or notifications.</remarks>
+	/// <remarks>The <see cref="ARSToolStripLabel"/> class extends the functionality of a standard <see
+	/// cref="ToolStripLabel"/>  by allowing temporary messages to be displayed for a specified duration. It provides
+	/// options to restore  the initial text after the timeout or to toggle visibility temporarily. This is useful for
+	/// scenarios where  transient feedback or status updates need to be shown in a UI.</remarks>
 	public class ARSToolStripLabel : ToolStripLabel, ICustomLabelARS
 	{
 		private System.Timers.Timer _timer;
 
 		public string InitialText { get; set; } = string.Empty;
-
 		public bool RestoreInitialTextAfterTimeout { get; set; } = false;
-
 		public bool TemporaryVisibility { get; set; } = false;
-
 		public double TextTimeout { get; set; } = 3000;
 
-		protected override void OnTextChanged(EventArgs e)
+		public ARSToolStripLabel()
 		{
-			base.OnTextChanged(e);
+			// Capture the initial text after the control is created
+			this.InitialText = this.Text;
+		}
+
+		/// <summary>
+		/// Show a temporary message and optionally restore initial text.
+		/// Works even if the message is the same as before.
+		/// </summary>
+		public void ShowTemporary(string message)
+		{
+			StopTimer();
 
 			if (string.IsNullOrEmpty(InitialText))
-				InitialText = Text;
+				InitialText = this.Text;
 
-			// Se for uso temporário: mostra e esconde
+			this.Text = message;
+
 			if (TemporaryVisibility)
 			{
 				this.Visible = true;
 				StartTimer(() => this.Visible = false);
 			}
-			// Se deve restaurar texto inicial após tempo
-			else if (RestoreInitialTextAfterTimeout && Text != InitialText)
+			else if (RestoreInitialTextAfterTimeout && message != InitialText)
 			{
 				StartTimer(() => this.Text = InitialText);
 			}
@@ -174,8 +190,7 @@ namespace ARS.WinForms
 
 		private void StartTimer(Action callback)
 		{
-			_timer?.Stop();
-			_timer?.Dispose();
+			StopTimer();
 
 			_timer = new System.Timers.Timer(TextTimeout)
 			{
@@ -187,13 +202,21 @@ namespace ARS.WinForms
 			{
 				if (Owner != null && !Owner.IsDisposed)
 				{
-					Owner.BeginInvoke(new Action(() => callback?.Invoke()));
+					Owner.BeginInvoke(new Action(callback));
 				}
 			};
 
 			_timer.Start();
 		}
+
+		private void StopTimer()
+		{
+			_timer?.Stop();
+			_timer?.Dispose();
+			_timer = null;
+		}
 	}
+
 
 
 
@@ -213,10 +236,13 @@ namespace ARS.WinForms
 	{
 		 
 		private Label _requiredFieldLabel;
-
 		private CultureInfo _culture = new CultureInfo(127);
-
 		private bool _isValid = true;
+		private string _placeholderText;
+		private Color _placeholderColor = Color.Gray;
+		private Color _defaultForeColor;
+
+		public bool ReadonlyWhenTextChagend { get; set; } = false;
 
 		public bool IsValid
 		{
@@ -229,9 +255,7 @@ namespace ARS.WinForms
 
 			set
 			{
-				_isValid = value;
-
-				
+				_isValid = value;				 
 			}
 		}
 
@@ -249,11 +273,9 @@ namespace ARS.WinForms
 		{
 			get => _culture;
 			set => _culture = value;
-		}
+		}	
 
-		private string _placeholderText;
-		private Color _placeholderColor = Color.Gray;
-		private Color _defaultForeColor;
+		public bool ShowPasswordOnMouseOver { get; set; } = false;
 
 		public void SetPlaceholder(string placeholder)
 		{
@@ -303,6 +325,50 @@ namespace ARS.WinForms
 			}
 
 			base.OnLostFocus(e);
+		}
+
+		protected override void OnTextChanged(EventArgs e)
+		{
+
+			ReadOnly = ReadonlyWhenTextChagend && !string.IsNullOrEmpty(Text) && Text != _placeholderText;
+		 
+
+			base.OnTextChanged(e);
+		}
+
+
+		private char _originalPasswordChar;
+		private bool _originalUseSystemPasswordChar;
+
+		private bool _stateStored = false;
+
+		protected override void OnMouseHover(EventArgs e)
+		{
+			if (ShowPasswordOnMouseOver && !_stateStored)
+			{
+				// Store current state
+				_originalPasswordChar = PasswordChar;
+				_originalUseSystemPasswordChar = UseSystemPasswordChar;
+				_stateStored = true;
+
+				// Reveal password
+				UseSystemPasswordChar = false;
+				PasswordChar = '\0'; // Show plain text
+			}
+
+			base.OnMouseHover(e);
+		}
+
+		protected override void OnMouseLeave(EventArgs e)
+		{
+			if (ShowPasswordOnMouseOver && _stateStored)
+			{
+				// Restore original state
+				UseSystemPasswordChar = _originalUseSystemPasswordChar;
+				PasswordChar = _originalPasswordChar;
+				_stateStored = false;
+			}
+			base.OnMouseLeave(e);
 		}
 
 	}
@@ -402,8 +468,11 @@ namespace ARS.WinForms
 			}
 
 			_formerValue = Text;
+			
 			ForeColor = SystemColors.WindowText;
+			
 			base.OnTextChanged(e);
+
 		}
 
 		protected override void OnLeave(EventArgs e)
@@ -589,6 +658,9 @@ namespace ARS.WinForms
 
 	public class CEPTextBox : DocumentTextBox
 	{
+
+		public override int MaxLength => 9;
+
 		protected override int UnmaskedLength => 8;
 		protected override int MaskedLength => 9;
 
@@ -596,11 +668,15 @@ namespace ARS.WinForms
 
 		protected override string ApplyMask(string rawText) =>
 			rawText.Insert(5, "-");
+
+		 
 	}
 
 
 	public class CPFTextBox : DocumentTextBox
 	{
+
+		public override int MaxLength => 14;
 		protected override int UnmaskedLength => 11;
 		protected override int MaskedLength => 14;
 
