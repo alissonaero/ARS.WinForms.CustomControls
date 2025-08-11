@@ -38,7 +38,7 @@ namespace ARS.WinForms
 
 	#region Labels
 
-	 
+
 	public class ARSLabel : Label, ICustomLabelARS
 	{
 		private System.Timers.Timer _timer;
@@ -234,7 +234,7 @@ namespace ARS.WinForms
 	/// simplify form input scenarios where validation and user guidance are needed.</remarks>
 	public class ARSTextBox : TextBox, ICustomControlsARS
 	{
-		 
+
 		private Label _requiredFieldLabel;
 		private CultureInfo _culture = new CultureInfo(127);
 		private bool _isValid = true;
@@ -255,7 +255,7 @@ namespace ARS.WinForms
 
 			set
 			{
-				_isValid = value;				 
+				_isValid = value;
 			}
 		}
 
@@ -273,7 +273,7 @@ namespace ARS.WinForms
 		{
 			get => _culture;
 			set => _culture = value;
-		}	
+		}
 
 		public bool ShowPasswordOnMouseOver { get; set; } = false;
 
@@ -331,7 +331,7 @@ namespace ARS.WinForms
 		{
 
 			ReadOnly = ReadonlyWhenTextChagend && !string.IsNullOrEmpty(Text) && Text != _placeholderText;
-		 
+
 
 			base.OnTextChanged(e);
 		}
@@ -468,9 +468,9 @@ namespace ARS.WinForms
 			}
 
 			_formerValue = Text;
-			
+
 			ForeColor = SystemColors.WindowText;
-			
+
 			base.OnTextChanged(e);
 
 		}
@@ -556,7 +556,7 @@ namespace ARS.WinForms
 				return;
 			}
 
-			if (!DocumentValidations .IsEmail(Text))
+			if (!DocumentValidations.IsEmail(Text))
 			{
 				ForeColor = Color.Red;
 				Text = _formerValue;
@@ -659,6 +659,18 @@ namespace ARS.WinForms
 	public class CEPTextBox : DocumentTextBox
 	{
 
+		/// <summary>
+		/// Retorna o CEP sem hifen. Retorna nulo se o CEP não definido ou for inválido.
+		/// </summary>
+		public string TypedValue
+		{
+			get
+			{
+				if (String.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCep(base.Text)) { return null; }
+				return base.Text.Replace("-", "");
+			}
+		}
+
 		public override int MaxLength => 9;
 
 		protected override int UnmaskedLength => 8;
@@ -669,12 +681,20 @@ namespace ARS.WinForms
 		protected override string ApplyMask(string rawText) =>
 			rawText.Insert(5, "-");
 
-		 
+
 	}
 
 
 	public class CPFTextBox : DocumentTextBox
 	{
+		public string TypedValue
+		{
+			get
+			{
+				if (String.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCPF(base.Text)) { return null; }
+				return base.Text.Replace("-", "").Replace(".", "");
+			}
+		}
 
 		public override int MaxLength => 14;
 		protected override int UnmaskedLength => 11;
@@ -688,6 +708,15 @@ namespace ARS.WinForms
 
 	public class CNPJTextBox : DocumentTextBox
 	{
+		public string TypedValue
+		{
+			get
+			{
+				if (String.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCNPJ(base.Text)) { return null; }
+				return base.Text.Replace("-", "").Replace(".", "").Replace("/", "");
+			}
+		}
+
 		protected override int UnmaskedLength => 14;
 		protected override int MaskedLength => 18;
 
@@ -696,7 +725,7 @@ namespace ARS.WinForms
 		protected override string ApplyMask(string rawText) =>
 			rawText.Insert(2, ".").Insert(6, ".").Insert(10, "/").Insert(15, "-");
 	}
-	 
+
 	#endregion
 
 
