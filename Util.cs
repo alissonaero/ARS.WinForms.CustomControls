@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Globalization;
 
-namespace ARS.WinForms
+namespace ARSoft.LegacyWinForms.CustomControls.CustomControls.Helpers
 {
 	public static class Util
 	{

@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target -->
+    <TargetFramework>net481</TargetFramework>
+    <OutputType>Library</OutputType>
+
+    <!-- Assembly Info -->
+    <AssemblyName>ARSoft.LegacyWinForms.CustomControls</AssemblyName>
+    <RootNamespace>ARSoft.LegacyWinForms.CustomControls</RootNamespace>
+    <AssemblyVersion>1.2.1</AssemblyVersion>
+    <FileVersion>1.2.1</FileVersion>
+
+    <!-- Signing -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>default.pfx</AssemblyOriginatorKeyFile>
+
+    <!-- NuGet Metadata -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>ARSoft.LegacyWinForms.CustomControls</PackageId>
+    <Version>1.2.1</Version>
+    <Authors>Alisson Santana</Authors>
+    <Company>ARSoft - Alisson Rodrigo Softwares</Company>
+    <Description>ARSoft Legacy WinForms Custom Controls Library provides a set of enhanced, ready-to-use controls for Windows Forms applications. 
+It includes advanced Label, TextBox, and specialized input controls (e.g., for CPF, CNPJ, CEP, email, currency, integers, and doubles) 
+with built-in validation, masking, placeholder support, temporary message display, and culture-aware formatting. 
+Designed to simplify UI development, improve user experience, and reduce repetitive boilerplate code.</Description>
+    <PackageTags>WindowsForms Component Control Custom Controls</PackageTags>
+    <RepositoryUrl>https://github.com/alissonaero/ARSoft.LegacyWinForms.CustomControls</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  
+  
+<ItemGroup>
+	<None Include="icon.png" Pack="true" PackagePath="" />
+	<None Include="readme.md" Pack="true" PackagePath="" />
+</ItemGroup>
+  
+  
+<ItemGroup>
+  <Compile Update="Properties\Settings.Designer.cs">
+    <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    <AutoGen>True</AutoGen>
+    <DependentUpon>Settings.settings</DependentUpon>
+  </Compile>
+</ItemGroup>
+  
+  
+<ItemGroup>
+  <None Update="Properties\Settings.settings">
+    <Generator>SettingsSingleFileGenerator</Generator>
+    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+  </None>
+</ItemGroup>
+
+
+  <!-- <ItemGroup> -->
+    <!-- <Compile Include="Main.cs"> -->
+      <!-- <SubType>Component</SubType> -->
+    <!-- </Compile> -->
+    <!-- <Compile Include="Properties\AssemblyInfo.cs" /> -->
+    <!-- <Compile Include="Properties\Settings.Designer.cs"> -->
+      <!-- <AutoGen>True</AutoGen> -->
+      <!-- <DesignTimeSharedInput>True</DesignTimeSharedInput> -->
+      <!-- <DependentUpon>Settings.settings</DependentUpon> -->
+    <!-- </Compile> -->
+    <!-- <Compile Include="SettingsManager.cs" /> -->
+    <!-- <Compile Include="Util.cs" /> -->
+  <!-- </ItemGroup> -->
+
+  <!-- <ItemGroup> -->
+    <!-- <None Include="ClassDiagram1.cd" /> -->
+    <!-- <None Include="default.pfx" /> -->
+    <!-- <None Include="Properties\Settings.settings"> -->
+      <!-- <Generator>SettingsSingleFileGenerator</Generator> -->
+      <!-- <LastGenOutput>Settings.Designer.cs</LastGenOutput> -->
+    <!-- </None> -->
+  <!-- </ItemGroup> -->
+
+</Project>

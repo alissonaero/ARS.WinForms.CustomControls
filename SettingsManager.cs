@@ -1,4 +1,5 @@
-﻿using ARS.WinForms.Properties;
+﻿ 
+using ARSoft.LegacyWinForms.CustomControls.Properties;
 using System;
 using System.Configuration;
 using System.IO;
@@ -7,10 +8,10 @@ using System.Security.Cryptography;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
-namespace ARS.WinForms
+namespace ARSoft.LegacyWinForms.CustomControls
 {
 	/*
-	/// ******** 🧠 What this class does *****
+	/// ********  What this class does *****
 	/// 
 	///	- Export(string settingsFilePath)
 	//	- Saves current user settings(Properties.Settings.Default.Save()).

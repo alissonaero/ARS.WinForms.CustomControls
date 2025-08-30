@@ -1,10 +1,11 @@
-﻿using System;
+﻿using ARSoft.LegacyWinForms.CustomControls.CustomControls.Helpers;
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace ARS.WinForms
+namespace ARSoft.LegacyWinForms.CustomControls
 {
 
 	public interface IDocumentField
@@ -54,13 +55,13 @@ namespace ARS.WinForms
 			base.OnCreateControl();
 
 			if (TemporaryVisibility)
-				this.Visible = false;
+				Visible = false;
 
 			if (string.IsNullOrEmpty(InitialText))
-				InitialText = this.Text;
+				InitialText = Text;
 
 			if (_initialForeColor == null)
-				_initialForeColor = this.ForeColor;
+				_initialForeColor = ForeColor;
 		}
 
 		protected override void OnTextChanged(EventArgs e)
@@ -77,15 +78,15 @@ namespace ARS.WinForms
 			StopTimer();
 
 			if (string.IsNullOrEmpty(InitialText))
-				InitialText = this.Text;
+				InitialText = Text;
 
 			if (_initialForeColor == null)
-				_initialForeColor = this.ForeColor;
+				_initialForeColor = ForeColor;
 
 			if (tempColor.HasValue)
-				this.ForeColor = tempColor.Value;
+				ForeColor = tempColor.Value;
 
-			this.Text = message;
+			Text = message;
 
 			HandleTemporaryBehavior();
 		}
@@ -96,16 +97,16 @@ namespace ARS.WinForms
 
 			if (TemporaryVisibility)
 			{
-				this.Visible = true;
-				StartTimer(() => this.Visible = false);
+				Visible = true;
+				StartTimer(() => Visible = false);
 			}
 			else if (RestoreInitialTextAfterTimeout && Text != InitialText)
 			{
 				StartTimer(() =>
 				{
-					this.Text = InitialText;
+					Text = InitialText;
 					if (_initialForeColor.HasValue)
-						this.ForeColor = _initialForeColor.Value;
+						ForeColor = _initialForeColor.Value;
 				});
 			}
 		}
@@ -122,7 +123,7 @@ namespace ARS.WinForms
 
 			_timer.Elapsed += (s, e) =>
 			{
-				if (!this.IsDisposed && this.IsHandleCreated)
+				if (!IsDisposed && IsHandleCreated)
 				{
 					callback?.Invoke();
 				}
@@ -161,7 +162,7 @@ namespace ARS.WinForms
 		public ARSToolStripLabel()
 		{
 			// Capture the initial text after the control is created
-			this.InitialText = this.Text;
+			InitialText = Text;
 		}
 
 		/// <summary>
@@ -173,18 +174,18 @@ namespace ARS.WinForms
 			StopTimer();
 
 			if (string.IsNullOrEmpty(InitialText))
-				InitialText = this.Text;
+				InitialText = Text;
 
-			this.Text = message;
+			Text = message;
 
 			if (TemporaryVisibility)
 			{
-				this.Visible = true;
-				StartTimer(() => this.Visible = false);
+				Visible = true;
+				StartTimer(() => Visible = false);
 			}
 			else if (RestoreInitialTextAfterTimeout && message != InitialText)
 			{
-				StartTimer(() => this.Text = InitialText);
+				StartTimer(() => Text = InitialText);
 			}
 		}
 
@@ -195,7 +196,7 @@ namespace ARS.WinForms
 			_timer = new System.Timers.Timer(TextTimeout)
 			{
 				AutoReset = false,
-				SynchronizingObject = this.Owner
+				SynchronizingObject = Owner
 			};
 
 			_timer.Elapsed += (s, e) =>
@@ -321,7 +322,7 @@ namespace ARS.WinForms
 
 			if (_requiredFieldLabel != null)
 			{
-				_requiredFieldLabel.ForeColor = (IsValid ? SystemColors.ControlText : Color.Red);
+				_requiredFieldLabel.ForeColor = IsValid ? SystemColors.ControlText : Color.Red;
 			}
 
 			base.OnLostFocus(e);
@@ -601,8 +602,8 @@ namespace ARS.WinForms
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
 			bool isDigitKey =
-				(e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9) ||
-				(e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9);
+				e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9 ||
+				e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9;
 
 			bool isControlShortcut =
 				e.Control && (
@@ -666,7 +667,7 @@ namespace ARS.WinForms
 		{
 			get
 			{
-				if (String.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCep(base.Text)) { return null; }
+				if (string.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCep(base.Text)) { return null; }
 				return base.Text.Replace("-", "");
 			}
 		}
@@ -691,7 +692,7 @@ namespace ARS.WinForms
 		{
 			get
 			{
-				if (String.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCPF(base.Text)) { return null; }
+				if (string.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCPF(base.Text)) { return null; }
 				return base.Text.Replace("-", "").Replace(".", "");
 			}
 		}
@@ -712,7 +713,7 @@ namespace ARS.WinForms
 		{
 			get
 			{
-				if (String.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCNPJ(base.Text)) { return null; }
+				if (string.IsNullOrEmpty(base.Text) || !DocumentValidations.IsCNPJ(base.Text)) { return null; }
 				return base.Text.Replace("-", "").Replace(".", "").Replace("/", "");
 			}
 		}

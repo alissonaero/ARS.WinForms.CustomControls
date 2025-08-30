@@ -1,26 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="ARS.WinForms.SettingsManager" Collapsed="true">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.SettingsManager" Collapsed="true">
     <Position X="16.5" Y="1.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAIAAABAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>SettingsManager.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ARS.WinForms.Util" Collapsed="true">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.Util" Collapsed="true">
     <Position X="18.25" Y="1.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAEAAAAABEAACBAAAACAAICQAAAgAgQQAAABAAAA=</HashCode>
       <FileName>Util.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ARS.WinForms.Properties.Settings" Collapsed="true">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.Properties.Settings" Collapsed="true">
     <Position X="18.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
     </TypeIdentifier>
   </Class>
-  <Class Name="ARS.WinForms.ARSTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.ARSTextBox">
     <Position X="8.25" Y="4" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAAAAAAAAAACgEAAAgAQQAAIAAAAAAAAAAAAA=</HashCode>
@@ -29,7 +29,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="ARS.WinForms.DoubleTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.DoubleTextBox">
     <Position X="13.75" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAACAAAAAAgAAAAAAAAQAAAAAAAAAAAgAAAABAA=</HashCode>
@@ -38,7 +38,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="ARS.WinForms.IntegerTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.IntegerTextBox">
     <Position X="7" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAACAAAAAAgAAAAAAAAQAAAAAAAAAAAgAAAABAA=</HashCode>
@@ -47,7 +47,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="ARS.WinForms.EmailTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.EmailTextBox">
     <Position X="11.5" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAACAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAA=</HashCode>
@@ -55,7 +55,7 @@
       <NewMemberFileName>C:\Users\Alisson\Desktop\ARS Windows Forms Custom Controls Main.cs</NewMemberFileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ARS.WinForms.CEPTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.CEPTextBox">
     <Position X="16" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
@@ -63,7 +63,7 @@
       <NewMemberFileName>C:\Users\Alisson\Desktop\ARS Windows Forms Custom Controls Main.cs</NewMemberFileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ARS.WinForms.CPFTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.CPFTextBox">
     <Position X="4.75" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
@@ -71,7 +71,7 @@
       <NewMemberFileName>C:\Users\Alisson\Desktop\ARS Windows Forms Custom Controls Main.cs</NewMemberFileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ARS.WinForms.CNPJTextBox">
+  <Class Name="ARSoft.LegacyWinForms.CustomControls.CNPJTextBox">
     <Position X="9.25" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
@@ -79,7 +79,7 @@
       <NewMemberFileName>C:\Users\Alisson\Desktop\ARS Windows Forms Custom Controls Main.cs</NewMemberFileName>
     </TypeIdentifier>
   </Class>
-  <Interface Name="ARS.WinForms.ICustomControlsARS">
+  <Interface Name="ARSoft.LegacyWinForms.CustomControls.ICustomControlsARS">
     <Position X="10.25" Y="4" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAAAAAAAAAACgAAAAgAQAAAAAAAAAAAAAAAAA=</HashCode>
